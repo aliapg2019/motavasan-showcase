@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String?
+  password        String
+  phone           String?         @unique
+  plan            String          @default("starter") // starter, pro, business
+  role            String          @default("user") // user, admin
+  avatar          String?
+  emailVerified   Boolean         @default(false)
+  phoneVerified   Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  generations     Generation[]
+  brandProfiles   BrandProfile[]
+  usageLogs       UsageLog[]
+  subscription    Subscription?
+  supportMessages SupportMessage[]
+  passwordResetTokens PasswordResetToken[]
+  loginAttempts   LoginAttempt[]
+  otpCodes        OtpCode[]
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String   @default("starter") // starter, pro, business
+  status    String   @default("active") // active, expired, cancelled
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Generation {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productName     String
+  category        String
+  price           String?
+  audience        String?
+  tone            String   @default("friendly")
+  goal            String   @default("sell")
+  templateType    String   @default("general")
+  brandProfileId  String?
+  result          String   // JSON string of generated content
+  createdAt       DateTime @default(now())
+}
+
+model Template {
+  id             String   @id @default(cuid())
+  name           String
+  nameFa         String
+  type           String   // discount, launch, seasonal, urgency, luxury, budget
+  description    String
+  descriptionFa  String
+  promptTemplate String   // The prompt template with placeholders
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model BrandProfile {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  tone        String   @default("friendly") // formal, informal, luxury, friendly, aggressive
+  formality   String   @default("semi-formal") // formal, semi-formal, informal
+  emojiLevel  String   @default("moderate") // none, minimal, moderate, heavy
+  slangLevel  String   @default("light") // none, light, moderate, heavy
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // generate, template_use, export, generate_advanced, etc.
+  tokens    Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model SupportMessage {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  message   String
+  category  String    @default("general") // general, technical, billing, feature_request
+  status    String    @default("open") // open, in_progress, replied, closed
+  reply     String?
+  repliedAt DateTime?
+  repliedBy String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+}
+
+model OtpCode {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  target     String   // email address or phone number
+  code       String   // 6-digit OTP code
+  type       String   // email_verification, phone_verification, email_login, phone_login
+  verified   Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
