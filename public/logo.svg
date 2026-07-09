@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Brand gradient: emerald → teal → violet -->
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <!-- Soft glow filter -->
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background: rounded square with brand gradient -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#brandGrad)"/>
+
+  <!-- Decorative inner highlight -->
+  <rect x="2" y="2" width="60" height="30" rx="16" fill="#ffffff" opacity="0.08"/>
+
+  <!-- Persian letter "م" stylized as content/pen nib -->
+  <!-- White "م" shape — drawn as a path for visual consistency -->
+  <g filter="url(#softGlow)">
+    <!-- Pen nib body (triangle pointing down) -->
+    <path d="M 32 14 L 44 38 L 20 38 Z" fill="#ffffff" opacity="0.18"/>
+    <!-- Central "م" stylized as flowing curve -->
+    <path d="
+      M 22 44
+      Q 22 28 32 28
+      Q 42 28 42 44
+      L 38 44
+      Q 38 32 32 32
+      Q 26 32 26 44
+      Z
+    " fill="#ffffff"/>
+    <!-- Spark accent (small star on top-right of "م") -->
+    <path d="
+      M 44 18
+      L 46 22
+      L 50 24
+      L 46 26
+      L 44 30
+      L 42 26
+      L 38 24
+      L 42 22
+      Z
+    " fill="#ffffff" opacity="0.95"/>
+    <!-- Small dot accent (bottom-left) -->
+    <circle cx="18" cy="48" r="2.5" fill="#ffffff" opacity="0.7"/>
+  </g>
+
+  <!-- Subtle border for definition in dark mode -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="0.5"/>
+</svg>
