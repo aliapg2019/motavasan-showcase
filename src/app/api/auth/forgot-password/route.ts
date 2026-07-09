@@ -8,7 +8,7 @@ const resetRequests = new Map<string, { count: number; lastRequest: number }>();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 
-// deployment config
+// ===== DEPLOYMENT CONFIG =====
 // The base URL for password reset links
 // In production, set NEXT_PUBLIC_APP_URL in .env (e.g., https://yourdomain.com)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Generate the reset link for the client
     const resetLink = `${APP_URL}/reset-password?token=${resetToken}`;
 
-    // email sending
+    // ===== EMAIL SENDING =====
     // Email sending is controlled by EMAIL_ENABLED env variable
     // When disabled (default), reset link is only logged
     // When enabled (production with hosting), actual email is sent
@@ -102,7 +102,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'اگر این ایمیل در سیستم ثبت شده باشد، لینک بازنشانی رمز عبور ارسال خواهد شد',
-      // Only expose the reset token in non-production for local testing
+      // In development, return the token for testing
+      // IMPORTANT: Remove _dev fields in production
       ...(process.env.NODE_ENV !== 'production' ? {
         _dev_resetToken: resetToken,
         _dev_resetLink: resetLink,

@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await bcrypt.hash(password, 12);
 
       // Generate a placeholder email from phone number
-      const placeholderEmail = `phone_${normalizedPhone}@motavasan.local`;
+      const placeholderEmail = `phone_${normalizedPhone}@contentsaas.local`;
 
       const user = await db.user.create({
         data: {

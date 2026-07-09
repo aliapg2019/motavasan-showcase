@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User as UserType } from './shared/types';
 import { saveAuth } from './shared/helpers';
 
-// OTP/Phone imports - re-enable when activating OTP features
+// ====== OTP/Phone imports - re-enable when activating OTP features ======
 // import { Phone, MessageCircle, Timer, ShieldCheck } from 'lucide-react';
 
 interface AuthScreenProps {
@@ -49,7 +49,7 @@ function checkPasswordStrength(password: string) {
 }
 
 type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
-// OTP modes - re-enable when SMS/email OTP is activated
+// ====== OTP modes - re-enable when SMS/email OTP is activated ======
 // | 'otp-email-login' | 'otp-email-register' | 'otp-phone-login' | 'otp-phone-register'
 // | 'otp-verify'
 
@@ -66,7 +66,7 @@ export default function AuthScreen({ onLogin }: AuthScreenProps) {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // OTP state variables - re-enable when activating OTP features
+  // ====== OTP state variables - re-enable when activating OTP features ======
   // const [phone, setPhone] = useState('');
   // const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   // const [otpTarget, setOtpTarget] = useState('');

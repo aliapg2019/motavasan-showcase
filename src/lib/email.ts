@@ -1,8 +1,31 @@
 import nodemailer from 'nodemailer';
 
-// Email is opt-in. Set EMAIL_ENABLED=true and SMTP_* env vars to activate.
-// Common ports: 465 (SSL), 587 (STARTTLS). For deliverability set SPF/DKIM/DMARC.
+/**
+ * Email Configuration Module
+ * 
+ * ===== ACTIVE INSTRUCTION FOR DEPLOYMENT =====
+ * To enable email sending on your hosting:
+ * 
+ * 1. Set these environment variables in your hosting panel or .env file:
+ *    - SMTP_HOST: Your mail server (e.g., mail.yourdomain.com)
+ *    - SMTP_PORT: Port (usually 465 for SSL, 587 for TLS)
+ *    - SMTP_USER: Email address (e.g., noreply@yourdomain.com)
+ *    - SMTP_PASS: Email password
+ *    - SMTP_FROM: Sender name and email (e.g., "محتواسان <noreply@yourdomain.com>")
+ *    - EMAIL_ENABLED: Set to "true" to enable email sending
+ * 
+ * 2. Most cPanel/DirectAdmin hostings provide SMTP access:
+ *    - Create an email account in cPanel (e.g., noreply@yourdomain.com)
+ *    - Use the SMTP credentials below
+ *    - Host: mail.yourdomain.com (or your server's hostname)
+ *    - Port: 465 (SSL) or 587 (STARTTLS)
+ * 
+ * 3. For better deliverability, configure SPF, DKIM, and DMARC records
+ *    in your domain's DNS settings.
+ * ===== END DEPLOYMENT INSTRUCTIONS =====
+ */
 
+// Check if email is enabled via environment variable
 const isEmailEnabled = process.env.EMAIL_ENABLED === 'true';
 
 // Create transporter only if SMTP config is available

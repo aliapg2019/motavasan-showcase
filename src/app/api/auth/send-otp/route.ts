@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     // Send OTP via appropriate channel
     if (type.includes('email')) {
-      // email otp
+      // ===== EMAIL OTP =====
       // Email sending is controlled by EMAIL_ENABLED env variable
       // When disabled (default), OTP is only logged and returned in dev mode
       // When enabled (production with hosting), actual email is sent
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         console.log(`[OTP EMAIL NOT SENT] To: ${target}, Code: ${code}, Type: ${type} - Email disabled or misconfigured`);
       }
     } else {
-      // sms otp
+      // ===== SMS OTP =====
       // SMS sending is controlled by SMS_ENABLED env variable
       // When disabled (default), OTP is only logged and returned in dev mode
       // When enabled (with Melipayamak API key), actual SMS is sent

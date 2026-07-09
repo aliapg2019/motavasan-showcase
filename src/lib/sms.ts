@@ -1,6 +1,27 @@
-// SMS via Melipayamak (ملی‌پیامک). Set SMS_ENABLED=true and MELIPAYAMAK_*
-// env vars to activate. Docs: https://github.com/Melipayamak/NodeJS
-
+/**
+ * SMS Configuration Module - Melipayamak (ملی‌پیامک)
+ * 
+ * ===== ACTIVE INSTRUCTION FOR DEPLOYMENT =====
+ * To enable SMS sending via Melipayamak:
+ * 
+ * 1. Register at https://melipayamak.com and get your API credentials
+ * 2. Set these environment variables in your hosting panel or .env file:
+ *    - SMS_ENABLED: Set to "true" to enable SMS sending
+ *    - MELIPAYAMAK_API_KEY: Your Melipayamak API key
+ *    - MELIPAYAMAK_SENDER: Your sender number (e.g., 3000XXXX)
+ *    - MELIPAYAMAK_OTP_TEMPLATE_ID: (Optional) Template ID for OTP messages
+ *      If using template, the pattern variable name should be "code"
+ * 
+ * 3. Melipayamak API Documentation:
+ *    https://github.com/Melipayamak/NodeJS
+ *    https://melipayamak.com/panel/api
+ * 
+ * 4. You can also use other Iranian SMS providers by modifying this file:
+ *    - Kavenegar (کاوه‌نگار): https://kavenegar.com
+ *    - Sms.ir: https://sms.ir
+ *    - Just replace the sendSms function body with the provider's API
+ * ===== END DEPLOYMENT INSTRUCTIONS =====
+ */
 
 // Check if SMS is enabled via environment variable
 const isSmsEnabled = process.env.SMS_ENABLED === 'true';
@@ -40,7 +61,7 @@ export async function sendSms(receptor: string, message: string): Promise<SmsRes
       ? '0' + receptor.slice(3) 
       : receptor;
 
-    // Method 1: Melipayamak REST API (simple send)
+    // === Method 1: Using Melipayamak REST API (Simple) ===
     const response = await fetch('https://rest.payamak-panel.com/api/SendSMS/SendSMS', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,7 +85,7 @@ export async function sendSms(receptor: string, message: string): Promise<SmsRes
       return { success: false, message: 'SMS provider returned error' };
     }
 
-    // Method 2: OTP template (more reliable for OTP, uncomment if needed)
+    // === Method 2: Using OTP Template (More Reliable for OTP) ===
     // Uncomment this block and comment out Method 1 if you have an OTP template:
     /*
     const templateId = process.env.MELIPAYAMAK_OTP_TEMPLATE_ID;

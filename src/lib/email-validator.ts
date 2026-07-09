@@ -1,7 +1,16 @@
-// Email validation — blocks disposable domains, catches Gmail dot tricks,
-// and detects suspicious patterns (role-based addresses, bot patterns).
+/**
+ * Email Validation & Anti-Fake Email Security Module
+ * 
+ * This module provides comprehensive email validation to prevent:
+ * - Disposable/temporary email registration
+ * - Fake/spam email accounts
+ * - Email bombing/registration abuse
+ * - Bot-generated email accounts
+ */
 
-// Disposable email domain blocklist. Keep updated periodically.
+// ====== DISPOSABLE EMAIL DOMAIN BLOCKLIST ======
+// Comprehensive list of known disposable/temporary email providers
+// Update this list periodically to block new disposable domains
 const DISPOSABLE_DOMAINS: Set<string> = new Set([
   // Popular disposable email services
   'mailinator.com', 'guerrillamail.com', 'guerrillamail.info', 'guerrillamail.biz',

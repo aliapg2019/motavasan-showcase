@@ -1,4 +1,5 @@
-// shared constants
+// ============ SHARED CONSTANTS ============
+
 export const CATEGORIES = [
   { value: 'fashion', label: 'مد و پوشاک' },
   { value: 'beauty', label: 'زیبایی و آرایشی' },

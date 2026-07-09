@@ -4,11 +4,15 @@ import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth';
 import { validateEmailSecurity, normalizeEmail } from '@/lib/email-validator';
 
+// ====== REGISTRATION RATE LIMITING ======
+// Max registrations per IP within the window
 const MAX_REGISTRATIONS_PER_IP = 3;
 const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+// Max registrations per email domain within the window
 const MAX_PER_DOMAIN = 5;
 const DOMAIN_RATE_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// Password strength validation
 function validatePasswordStrength(password: string): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -28,6 +32,7 @@ function validatePasswordStrength(password: string): { valid: boolean; errors: s
     errors.push('حداقل یک نماد خاص (!@#$%...)');
   }
 
+  // Check for common weak passwords
   const commonPasswords = ['12345678', 'password', 'Password1', 'qwerty123', 'Aa123456', 'Pass1234', 'Password123'];
   if (commonPasswords.some(cp => password.toLowerCase() === cp.toLowerCase())) {
     errors.push('این رمز عبور بسیار رایج است. لطفاً رمز عبور قوی‌تر انتخاب کنید');
@@ -41,10 +46,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, name, password, phone } = body;
 
+    // ====== Get client IP for rate limiting ======
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || request.headers.get('x-real-ip')
       || 'unknown';
 
+    // ====== Validate required fields ======
     if (!email || !password) {
       return NextResponse.json(
         { error: 'ایمیل و رمز عبور الزامی است' },
@@ -52,6 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ====== Name validation ======
     if (!name || name.trim().length < 2) {
       return NextResponse.json(
         { error: 'نام باید حداقل ۲ کاراکتر باشد' },
@@ -59,6 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ====== Comprehensive email security validation ======
     const emailValidation = validateEmailSecurity(email);
     if (!emailValidation.isValid) {
       return NextResponse.json(
@@ -67,10 +76,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Normalize to catch Gmail dot tricks: test@gmail.com == t.e.s.t@gmail.com
+    // ====== Normalize email for duplicate checking ======
+    // This catches Gmail dot tricks: test@gmail.com = t.e.s.t@gmail.com
     const normalizedEmail = normalizeEmail(email);
 
-    // Rate limit by IP using the loginAttempt table
+    // ====== Rate limiting: per IP ======
+    const recentRegistrationsByIp = await db.user.count({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - RATE_WINDOW_MS),
+        },
+        // We track via loginAttempt table with a special marker
+      },
+    });
+
+    // Use loginAttempt table for IP-based rate limiting
     const recentAttemptsByIp = await db.loginAttempt.count({
       where: {
         ip: clientIp,
@@ -88,7 +108,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limit by email domain
+    // ====== Rate limiting: per email domain ======
     const emailDomain = email.split('@')[1]?.toLowerCase();
     if (emailDomain) {
       const recentDomainRegistrations = await db.user.count({
@@ -108,6 +128,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ====== Validate phone format if provided ======
     if (phone) {
       const phoneRegex = /^(\+98|0)9\d{9}$/;
       if (!phoneRegex.test(phone)) {
@@ -116,6 +137,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      // Check phone uniqueness
       const normalizedPhone = phone.startsWith('+98') ? '0' + phone.slice(3) : phone;
       const existingPhone = await db.user.findUnique({ where: { phone: normalizedPhone } });
       if (existingPhone) {
@@ -126,6 +148,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ====== Validate password strength ======
     const strengthCheck = validatePasswordStrength(password);
     if (!strengthCheck.valid) {
       return NextResponse.json(
@@ -134,6 +157,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ====== Check if user exists (exact email) ======
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json(
@@ -142,8 +166,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check normalized email duplicates (catches Gmail dot tricks)
+    // ====== Check for normalized email duplicates (catches Gmail dot tricks) ======
     if (normalizedEmail !== email.toLowerCase()) {
+      // If normalized differs from original, check for existing normalized versions
       const allUsers = await db.user.findMany({
         where: {
           email: { contains: normalizedEmail.split('@')[0] },
@@ -161,12 +186,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // First registered user becomes admin
+    // ====== Check if any admin exists - if not, make this user admin ======
     const adminCount = await db.user.count({ where: { role: 'admin' } });
     const role = adminCount === 0 ? 'admin' : 'user';
 
+    // ====== Hash password with higher salt rounds ======
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // ====== Create user ======
     const normalizedPhone = phone ? (phone.startsWith('+98') ? '0' + phone.slice(3) : phone) : null;
     const user = await db.user.create({
       data: {
@@ -179,6 +206,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // ====== Create default subscription ======
     await db.subscription.create({
       data: {
         userId: user.id,
@@ -187,6 +215,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // ====== Create default brand profile ======
     await db.brandProfile.create({
       data: {
         userId: user.id,
@@ -199,6 +228,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // ====== Log registration as login attempt (for IP rate limiting) ======
     await db.loginAttempt.create({
       data: {
         userId: user.id,
@@ -208,6 +238,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // ====== Sign token ======
     const token = await signToken({
       userId: user.id,
       email: user.email,
@@ -220,6 +251,7 @@ export async function POST(request: NextRequest) {
       token,
     });
 
+    // Set cookie as well
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

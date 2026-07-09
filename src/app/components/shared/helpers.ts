@@ -1,8 +1,9 @@
-// shared helpers
+// ============ SHARED HELPERS ============
+
 import { User } from './types';
 import { CATEGORIES } from './constants';
 
-// auth helpers
+// ============ AUTH HELPERS ============
 const TOKEN_KEY = 'contentgen_token';
 const USER_KEY = 'contentgen_user';
 
@@ -42,7 +43,7 @@ export function authFetch(url: string, options: RequestInit = {}): Promise<Respo
   return fetch(url, { ...options, headers });
 }
 
-// utility helpers
+// ============ UTILITY HELPERS ============
 export function copyToClipboard(text: string) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text);

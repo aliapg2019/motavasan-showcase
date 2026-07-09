@@ -11,8 +11,26 @@ const PLAN_LIMITS: Record<string, number> = {
 
 /**
  * POST /api/generate/save
- * Persist a generation result that was produced elsewhere (e.g. client-side).
- * Re-checks the daily limit to guard against race conditions.
+ * ============================================
+ * Persists a generation result that was produced client-side via Puter.js.
+ *
+ * The client flow is:
+ *   1. POST /api/generate         → server builds prompt + checks rate limit
+ *   2. window.puter.ai.chat(...)   → client calls Puter AI directly (user pays)
+ *   3. POST /api/generate/save     → client sends parsed result, server saves
+ *
+ * We re-check the rate limit here to prevent a race condition where the user
+ * fires off many parallel AI requests after passing the prepare check.
+ *
+ * Request body: {
+ *   productName, category, price?, audience?,
+ *   tone, goal, templateType, brandProfileId?,
+ *   advanced: boolean,
+ *   result: { captions, stories, reels_script, ads, hashtags },
+ *   tokens?: number  // optional token usage from Puter response
+ * }
+ *
+ * Response: { id, createdAt }
  */
 export async function POST(request: NextRequest) {
   try {
